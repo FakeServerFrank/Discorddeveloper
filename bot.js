@@ -61,4 +61,4 @@ function guildDetail(id) {
     settings: store.get(id),
   };
 }
-module.exports = { start, stop, restart, status, guilds, guildDetail, events: () => events, log };
+module.exports = { start, stop, restart, status, guilds, guildDetail, guild: id => ready() ? client.guilds.cache.get(id) : null, events: () => events, log };
