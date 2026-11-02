@@ -1,12 +1,12 @@
 require('dotenv').config();
 const express = require('express'), session = require('express-session'), helmet = require('helmet');
-const crypto = require('crypto'), path = require('path');
-const bot = require('./bot'), store = require('./store');
-const { PORT = 3000, CLIENT_ID, CLIENT_SECRET, BASE_URL, SESSION_SECRET, OWNER_IDS = '' } = process.env;
-const owners = OWNER_IDS.split(',').map(s => s.trim()).filter(Boolean);
-if (!CLIENT_ID || !CLIENT_SECRET || !BASE_URL || !SESSION_SECRET || !owners.length) {
+const path = require('path');
+const bot = require('./bot');
+const { PORT = 3000, CLIENT_ID, CLIENT_SECRET, BASE_URL, SESSION_SECRET, OWNER_IDS = '', DOWNLOAD_URL = '', REQUIRE_APP = 'true' } = process.env;
+if (!CLIENT_ID || !CLIENT_SECRET || !BASE_URL || !SESSION_SECRET || !OWNER_IDS.trim()) {
   console.error('Configura CLIENT_ID, CLIENT_SECRET, BASE_URL, SESSION_SECRET y OWNER_IDS en .env'); process.exit(1);
 }
+const requireApp = REQUIRE_APP !== 'false';
 const app = express();
 app.set('trust proxy', 1);
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -15,21 +15,16 @@ app.use(session({
   secret: SESSION_SECRET, resave: false, saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax', secure: BASE_URL.startsWith('https'), maxAge: 7 * 864e5 },
 }));
-const REDIRECT = `${BASE_URL}/auth/callback`;
+const inApp = req => (req.get('user-agent') || '').includes('NexusApp');
+const appOnly = (req, res, next) => (!requireApp || inApp(req)) ? next() : res.status(403).json({ error: 'Usa la app Nexus' });
 
-// --- Discord OAuth2 ---
-app.get('/auth/login', (req, res) => {
-  req.session.state = crypto.randomBytes(16).toString('hex');
-  const q = new URLSearchParams({ client_id: CLIENT_ID, redirect_uri: REDIRECT, response_type: 'code', scope: 'identify', state: req.session.state });
-  res.redirect(`https://discord.com/oauth2/authorize?${q}`);
+app.get('/config', (q, s) => s.json({ requireApp }));
+app.get('/download', (q, s) => DOWNLOAD_URL ? s.redirect(DOWNLOAD_URL) : s.status(404).send('Descarga aún no disponible.'));
+app.use(['/auth/login', '/invite', '/api'], appOnly);
+app.use(require('./auth').router);
+app.use('/api', require('./api'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.listen(PORT, () => {
+  console.log(`Nexus en ${BASE_URL} (puerto ${PORT})`);
+  bot.start().catch(e => console.error('Bot no iniciado:', e.message));
 });
-app.get('/auth/callback', async (req, res) => {
-  try {
-    if (!req.query.code || req.query.state !== req.session.state) return res.status(400).send('Estado inválido. Vuelve a iniciar sesión.');
-    const t = await fetch('https://discord.com/api/oauth2/token', {
-      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, grant_type: 'authorization_code', code: req.query.code, redirect_uri: REDIRECT }),
-    }).then(r => r.json());
-    if (!t.access_token) return res.status(400).send('No se pudo autenticar con Discord.');
-    const u = await fetch('https://discord.com/api/users/@me', { headers: { Authorization: `Bearer ${t.access_token}` } }).then(r => r.json());
-    if (!owners.includes(u.id)) { bot.log('warn', `Acceso denegado a ${u.username}`); return res.status(403).send('Tu cuenta no está autorizada
