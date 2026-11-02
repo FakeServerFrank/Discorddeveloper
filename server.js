@@ -15,7 +15,7 @@ app.use(session({
   secret: SESSION_SECRET, resave: false, saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax', secure: BASE_URL.startsWith('https'), maxAge: 7 * 864e5 },
 }));
-const inApp = req => (req.get('user-agent') || '').includes('NexusApp');
+const inApp = req => (req.get('user-agent') || '').includes('NexusApp') || /(^|; )nexusapp=1/.test(req.get('cookie') || '');
 const appOnly = (req, res, next) => (!requireApp || inApp(req)) ? next() : res.status(403).json({ error: 'Usa la app Nexus' });
 
 app.get('/config', (q, s) => s.json({ requireApp }));
