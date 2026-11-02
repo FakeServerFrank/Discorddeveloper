@@ -2,5 +2,6 @@
   "appId": "com.nexus.botmanager",
   "appName": "Nexus Bot Manager",
   "webDir": "www",
+  "android": { "appendUserAgent": "NexusApp" },
   "server": { "url": "__APP_URL__", "cleartext": false, "allowNavigation": ["discord.com"] }
 }
