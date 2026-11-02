@@ -4,6 +4,11 @@
 <meta name="theme-color" content="#0b0c10"><link rel="manifest" href="/manifest.json"><link rel="icon" href="/icon.svg">
 <title>Nexus Bot Manager</title>
 <link rel="stylesheet" href="/style.css">
+<script>
+function showErr(t){document.body.insertAdjacentHTML('afterbegin','<pre style="color:#ff5470;white-space:pre-wrap;padding:12px;font-size:13px">'+String(t).replace(/</g,'&lt;')+'</pre>')}
+window.addEventListener('error',function(e){var t=e.target;showErr(t&&(t.src||t.href)?'No carga: '+(t.src||t.href):e.message+' ('+String(e.filename).split('/').pop()+':'+e.lineno+')')},true);
+window.addEventListener('unhandledrejection',function(e){showErr('Promesa: '+e.reason)});
+</script>
 </head><body>
 <div id="toast"></div><main id="app"></main><nav id="nav" hidden></nav>
 <script src="/core.js"></script>
