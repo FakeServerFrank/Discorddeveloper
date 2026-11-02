@@ -11,7 +11,11 @@ async function start() {
   state = 'starting'; log('info', 'Iniciando bot…');
   const c = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
   c.once('ready', () => { state = 'online'; log('ok', `Conectado como ${c.user.tag}`); });
-  c.on('guildCreate', g => log('info', `Añadido a ${g.name}`));
+  c.on('guildCreate', async g => {
+    log('info', `Añadido a ${g.name}`);
+    const ch = g.systemChannel || g.channels.cache.find(x => x.isTextBased() && x.permissionsFor(g.members.me)?.has('SendMessages'));
+    ch?.send(`Gracias por añadir Nexus. Para configurarlo, instala la app: ${process.env.BASE_URL}/download`).catch(() => {});
+  });
   c.on('guildDelete', g => log('warn', `Eliminado de ${g.name}`));
   c.on('error', e => log('error', e.message));
   c.on('shardDisconnect', () => { state = 'offline'; log('warn', 'Desconectado de Discord'); });
