@@ -1,4 +1,4 @@
-const MODS=[['welcome','Bienvenidas',1],['moderation','Moderación',0],['tickets','Tickets',0],['levels','Niveles',0],['security','Seguridad',0]];
+const MODS=[['welcome','Bienvenidas',1],['moderation','Moderación',0],['tickets','Tickets',0],['levels','Niveles',0],['security','Seguridad',0],['entertainment','Entretenimiento',0],['music','Música',0]];
 async function guilds(){const g=await api('/guilds');
  app.replaceChildren(h('h1',{},'Servidores'),...(g.length?g.map(x=>h('div',{className:'card row',on:{click:()=>{guildId=x.id;view='guild';render()}}},h('img',{className:'av',src:x.icon||'/icon.svg',alt:''}),h('div',{className:'grow'},h('b',{},x.name),h('div',{className:'mu'},x.members+' miembros')))):[h('p',{className:'mu'},'No hay servidores con el bot donde puedas administrar.')]),
   h('button',{className:'pri',style:'margin-top:8px',on:{click:go('/invite')}},'Añadir el bot a otro servidor'))}
