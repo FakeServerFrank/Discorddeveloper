@@ -3,6 +3,7 @@ const bot = require('./bot'), store = require('./store');
 const { need, ownerOnly, canManage } = require('./auth');
 const api = express.Router();
 api.use(need);
+api.use(require('./assistant'));
 
 api.get('/me', (q, s) => { const { id, name, avatar, isOwner } = q.session.user; s.json({ id, name, avatar, isOwner }); });
 api.get('/status', ownerOnly, (q, s) => s.json(bot.status()));
