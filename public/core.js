@@ -1,7 +1,7 @@
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 const $=s=>document.querySelector(s), app=$('#app'), nav=$('#nav');
 let view='home', guildId=null, timer=null, me=null;
-const inApp=navigator.userAgent.includes('NexusApp');
+if(inApp)document.cookie='nexusapp=1; path=/; max-age=31536000; secure; samesite=lax';
 function h(tag,props={},...kids){const e=document.createElement(tag);
  for(const[k,v]of Object.entries(props)){if(k==='on')for(const[ev,fn]of Object.entries(v))e.addEventListener(ev,fn);else if(k in e)e[k]=v;else e.setAttribute(k,v)}
  kids.flat().forEach(c=>e.append(c instanceof Node?c:document.createTextNode(c??'')));return e}
