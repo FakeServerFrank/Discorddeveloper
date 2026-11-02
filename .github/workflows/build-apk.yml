@@ -16,7 +16,7 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - name: Inyectar URL del backend
         working-directory: app
-        env: { APP_URL: "${{ vars.APP_URL }}" }
+        env: { APP_URL: "${{ vars.APP_URL || secrets.APP_URL }}" }
         run: |
           test -n "$APP_URL" || { echo "Falta la variable APP_URL"; exit 1; }
           sed -i "s|__APP_URL__|$APP_URL|" capacitor.config.json
