@@ -20,7 +20,10 @@ router.get('/auth/callback', async (req, res) => {
       method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ client_id: CLIENT_ID, client_secret: CLIENT_SECRET, grant_type: 'authorization_code', code: req.query.code, redirect_uri: REDIRECT }),
     }).then(x => x.json());
-    if (!t.access_token) return res.status(400).send('No se pudo autenticar con Discord.');
+    if (!t.access_token) {
+      console.error('OAuth fallo:', JSON.stringify(t), '| redirect usado:', REDIRECT, '| client_id:', CLIENT_ID);
+      return res.status(400).send('No se pudo autenticar con Discord.');
+    }
     const H = { Authorization: `Bearer ${t.access_token}` };
     const [u, gs] = await Promise.all([
       fetch('https://discord.com/api/users/@me', { headers: H }).then(x => x.json()),
@@ -32,7 +35,7 @@ router.get('/auth/callback', async (req, res) => {
       avatar: u.avatar ? `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=64` : null,
       isOwner: owners.includes(u.id), manage };
     res.redirect('/');
-  } catch (e) { res.status(500).send('Error de autenticación.'); }
+  } catch (e) { console.error('Error auth:', e.message); res.status(500).send('Error de autenticación.'); }
 });
 router.post('/auth/logout', (req, res) => req.session.destroy(() => res.json({ ok: true })));
 
